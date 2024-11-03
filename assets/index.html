@@ -16,10 +16,7 @@
 
 			<!-- Tag Selection -->
 			<div id="tagSelection">
-				<label>Select Tags to Filter Playlist:</label>
-
 				<div id="tagList">
-					<button onclick="toggleTag('rock')">Rock</button>
 				</div>
 			</div>
 
@@ -29,12 +26,54 @@
 
 			<!-- Custom Controls -->
 			<div class="controls">
-				<button onclick="playAudio()">Play</button>
-				<button onclick="pauseAudio()">Pause</button>
-				<button onclick="skipBackward()">-10 sec</button>
-				<button onclick="skipForward()">+10 sec</button>
-				<button onclick="previousTrack()">Previous Track</button>
-				<button onclick="nextTrack()">Next Track</button>
+				<button class="previous" onclick="previousTrack()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+						stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+						class="feather feather-skip-back">
+						<polygon points="19 20 9 12 19 4 19 20"></polygon>
+						<line x1="5" y1="19" x2="5" y2="5"></line>
+					</svg>
+				</button>
+				<button class="back" onclick="skipBackward()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+						stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+						class="feather feather-skip-back">
+						<polygon points="8,20 1,12 8,4 8,20"></polygon>
+						<polygon points="19,20 12,12 19,4 19,20"></polygon>
+					</svg>
+				</button>
+				<button id="play-button" onclick="playAudio()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+						viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+						stroke-linecap="round" stroke-linejoin="round" class="feather feather-play-circle">
+						<circle cx="12" cy="12" r="10"></circle>
+						<polygon points="10 8 16 12 10 16 10 8"></polygon>
+					</svg>
+				</button>
+				<button id="pause-button" class="pause" onclick="pauseAudio()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+						stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-pause-circle">
+						<circle cx="12" cy="12" r="10"></circle>
+						<line x1="10" y1="15" x2="10" y2="9"></line>
+						<line x1="14" y1="15" x2="14" y2="9"></line
+					></svg>
+				</button>
+				<button class="forward" onclick="skipForward()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+						viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+						stroke-linecap="round" stroke-linejoin="round" class="feather feather-skip-forward">
+						<polygon points="1,4 8,12 1,20 1,4"></polygon>
+						<polygon points="12,4 20,12 12,20 12,4"></polygon>
+					</svg>
+				</button>
+				<button class=next" onclick="nextTrack()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+						viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+						stroke-linecap="round" stroke-linejoin="round" class="feather feather-skip-forward">
+						<polygon points="5 4 15 12 5 20 5 4"></polygon>
+						<line x1="19" y1="5" x2="19" y2="19"></line>
+					</svg>
+				</button>
 				<input type="range" id="volume" value="100" max="100" step="1" oninput="setVolume()" />
 			</div>
 

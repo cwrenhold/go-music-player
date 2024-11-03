@@ -12,6 +12,10 @@ async function initialise() {
   await fetchImages();
 
   setRandomImage();
+
+  const pauseButton = document.getElementById("pause-button");
+
+  pauseButton.classList.add("selected");
 }
 
 // Fetch the playlist from the backend
@@ -96,10 +100,22 @@ function setupTags() {
 // Play and Pause Functions
 function playAudio() {
   audioPlayer.play();
+
+  const playButton = document.getElementById("play-button");
+  const pauseButton = document.getElementById("pause-button");
+
+  playButton.classList.add("selected");
+  pauseButton.classList.remove("selected");
 }
 
 function pauseAudio() {
   audioPlayer.pause();
+
+  const playButton = document.getElementById("play-button");
+  const pauseButton = document.getElementById("pause-button");
+
+  playButton.classList.remove("selected");
+  pauseButton.classList.add("selected");
 }
 
 // Skip Forward and Backward Functions
