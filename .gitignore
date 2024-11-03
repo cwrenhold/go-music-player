@@ -1,0 +1,9 @@
+# Ignore all files in the images and music directory, excluding .gitkeep files
+images/*
+!images/.gitkeep
+
+music/*
+!music/.gitkeep
+
+# Ignore the main config file
+config.json
