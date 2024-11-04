@@ -6,25 +6,59 @@ let allImages = [];         // Full list of all images
 let filteredPlaylist = [];  // Filtered list based on selected tags
 let currentTrackIndex = 0;
 let selectedTags = new Set(); // Set of tags currently selected
+let shuffleEnabled = false;
+
+let settings = {
+  "volume": 100,
+  "shuffle": false,
+  "selectedTags": []
+}
 
 async function initialise() {
+  loadSettings();
   await fetchPlaylist();
   await fetchImages();
 
+  setupTags();
+  updateTagsDisplay(); // Load stored tags when the playlist is fetched
+
   setRandomImage();
+
+  createPlaylist();              // Initialize filtered playlist based on loaded tags
 
   const pauseButton = document.getElementById("pause-button");
 
   pauseButton.classList.add("selected");
+  seekBar.value = 0;
+}
+
+function loadSettings() {
+  const storedSettings = localStorage.getItem("settings");
+  if (storedSettings) {
+    settings = JSON.parse(storedSettings);
+    console.log("Loaded settings from local storage: ", settings);
+  }
+
+  audioPlayer.volume = settings.volume / 100.0;
+  document.getElementById("volume").value = settings.volume;
+  shuffleEnabled = settings.shuffle;
+  selectedTags = new Set(settings.selectedTags);
+
+  updateShuffleButton();
+}
+
+function saveSettings() {
+  settings.volume = audioPlayer.volume * 100.0;
+  settings.shuffle = shuffleEnabled;
+  settings.selectedTags = Array.from(selectedTags);
+
+  localStorage.setItem("settings", JSON.stringify(settings));
 }
 
 // Fetch the playlist from the backend
 async function fetchPlaylist() {
   const response = await fetch("playlist");
   allTracks = await response.json();
-  setupTags();
-  loadSelectedTagsFromStorage(); // Load stored tags when the playlist is fetched
-  applyTagFilter();              // Initialize filtered playlist based on loaded tags
 }
 
 // Fetch the images from the backend
@@ -53,6 +87,7 @@ function loadTrack(index) {
   }
 
   if (index >= 0 && index < filteredPlaylist.length) {
+    seekBar.value = 0;
     const track = filteredPlaylist[index];
 
     const selectedTrack = playlist.querySelector(`li[data-index="${index}"]`);
@@ -65,6 +100,7 @@ function loadTrack(index) {
     audioSource.src = "stream?file=" + filename;
 
     audioPlayer.load(); // Load the new track
+    updateSeekBar();
     setRandomImage();
   }
 }
@@ -101,6 +137,7 @@ function setupTags() {
 // Play and Pause Functions
 function playAudio() {
   audioPlayer.play();
+  updateSeekBar();
 
   const playButton = document.getElementById("play-button");
   const pauseButton = document.getElementById("pause-button");
@@ -129,10 +166,31 @@ function skipBackward() {
 }
 
 // Update SeekBar as the Audio Plays
-audioPlayer.ontimeupdate = function() {
+audioPlayer.ontimeupdate = updateSeekBar;
+
+function updateSeekBar() {
   const percentage = (audioPlayer.currentTime / audioPlayer.duration) * 100.0;
   seekBar.value = percentage;
-};
+
+  const currentTime = document.getElementById("currentTime");
+  currentTime.textContent = formatTime(audioPlayer.currentTime, audioPlayer.duration);
+}
+
+function formatTime(elapsed, duration) {
+  if (isNaN(elapsed) || isNaN(duration)) {
+    return "0:00 / 0:00";
+  }
+
+  const elapsedMinutes = Math.floor(elapsed / 60);
+  const elapsedSeconds = Math.floor(elapsed % 60);
+  const durationMinutes = Math.floor(duration / 60);
+  const durationSeconds = Math.floor(duration % 60);
+
+  const elapsedSecondsString = elapsedSeconds.toString().padStart(2, "0");
+  const durationSecondsString = durationSeconds.toString().padStart(2, "0");
+
+  return `${elapsedMinutes}:${elapsedSecondsString} / ${durationMinutes}:${durationSecondsString}`;
+}
 
 // Load the next track when the current track ends
 audioPlayer.onended = function() {
@@ -156,11 +214,11 @@ function toggleTag(tag) {
     selectedTags.add(tag);
   }
   saveSelectedTagsToStorage(); // Save selected tags to local storage
-  applyTagFilter();
+  createPlaylist();
 }
 
 // Apply tag filter to create the filtered playlist
-function applyTagFilter() {
+function createPlaylist() {
   // If no tags are selected, show all tracks
   if (selectedTags.size === 0) {
     filteredPlaylist = allTracks;
@@ -197,18 +255,12 @@ function applyTagFilter() {
 // Save the selected tags to local storage
 function saveSelectedTagsToStorage() {
   // Convert Set to an array to store in local storage
-  localStorage.setItem("selectedTags", JSON.stringify(Array.from(selectedTags)));
+  settings.selectedTags = Array.from(selectedTags);
+  saveSettings();
 }
 
 // Load selected tags from local storage
-function loadSelectedTagsFromStorage() {
-  const storedTags = localStorage.getItem("selectedTags");
-  if (storedTags) {
-    // Parse stored tags and add them to the selectedTags Set
-    JSON.parse(storedTags).forEach(tag => selectedTags.add(tag));
-  }
-
-  // Update the tag selection
+function updateTagsDisplay() {
   const tags = document.querySelectorAll(".tag");
   tags.forEach(tag => {
     if (selectedTags.has(tag.getAttribute("data-tag"))) {
@@ -217,16 +269,47 @@ function loadSelectedTagsFromStorage() {
   });
 }
 
+function toggleShuffle() {
+  shuffleEnabled = !shuffleEnabled;
+  saveSettings();
+
+  updateShuffleButton();
+}
+
+function updateShuffleButton() {
+  const shuffleButtons = document.querySelectorAll(".shuffle");
+  if (shuffleEnabled) {
+    shuffleButtons.forEach(button => button.classList.add("selected"));
+  } else {
+    shuffleButtons.forEach(button => button.classList.remove("selected"));
+  }
+}
+
 // Next Track
 function nextTrack() {
-  if (currentTrackIndex < filteredPlaylist.length - 1) {
-    currentTrackIndex++;
-  } else {
-    currentTrackIndex = 0;
-  }
+  currentTrackIndex = getNextTrackIndex();
 
   loadTrack(currentTrackIndex);
   playAudio();
+}
+
+function getNextTrackIndex() {
+  if (shuffleEnabled) {
+    // Exclude the current track from the shuffle, if there are more than one tracks
+    let shufflePlaylist = filteredPlaylist.slice();
+    if (shufflePlaylist.length > 1) {
+      shufflePlaylist.splice(currentTrackIndex, 1);
+    }
+
+    const randomIndex = Math.floor(Math.random() * shufflePlaylist.length);
+    return filteredPlaylist.indexOf(shufflePlaylist[randomIndex]);
+  }
+
+  if (currentTrackIndex < filteredPlaylist.length - 1) {
+    return currentTrackIndex + 1;
+  } else {
+    return 0;
+  }
 }
 
 // Previous Track
@@ -244,6 +327,8 @@ function previousTrack() {
 function setVolume() {
   const value = document.getElementById("volume").value;
   audioPlayer.volume = value / 100.0;
+  settings.volume = value;
+  saveSettings();
 }
 
 window.onload = initialise;
