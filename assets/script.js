@@ -61,6 +61,7 @@ function loadTrack(index) {
     }
 
     const filename = track.file;
+    console.log("Loading track: " + filename);
     audioSource.src = "stream?file=" + filename;
 
     audioPlayer.load(); // Load the new track

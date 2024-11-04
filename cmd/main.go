@@ -58,12 +58,16 @@ func ServeAudio(w http.ResponseWriter, r *http.Request) {
 	baseFilePath := filepath.Join("..", "music")
 	fileName := r.URL.Query().Get("file")
 
+	log.Println("Requesting file: ", fileName)
+
 	// Undo URL encoding to get the file name
 	fileName, err := url.QueryUnescape(fileName)
 	if err != nil {
 		http.Error(w, "Invalid file name", http.StatusBadRequest)
 		return
 	}
+
+	log.Println("Decoded file name: ", fileName)
 
 	filePath := filepath.Join(baseFilePath, fileName)
 	file, err := os.Open(filePath)
@@ -73,12 +77,16 @@ func ServeAudio(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
+	log.Println("Serving file: ", filePath)
+
 	// Get file info to serve content
 	stat, err := file.Stat()
 	if err != nil {
 		http.Error(w, "Could not get file info", http.StatusInternalServerError)
 		return
 	}
+
+	log.Println("File size: ", stat.Size())
 
 	// Serve the content and allow range requests
 	http.ServeContent(w, r, filepath.Base(filePath), stat.ModTime(), file)
