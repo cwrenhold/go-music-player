@@ -120,7 +120,7 @@ body {
         margin: 0 auto;
     }
 
-    #currentTime {
+    #currentTime, #trackTitle {
         color: #666;
     }
 }

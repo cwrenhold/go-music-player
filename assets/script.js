@@ -102,6 +102,9 @@ function loadTrack(index) {
     audioPlayer.load(); // Load the new track
     updateSeekBar();
     setRandomImage();
+
+    const trackTitle = document.getElementById("trackTitle");
+    trackTitle.textContent = track.title;
   }
 }
 
